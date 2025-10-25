@@ -3,23 +3,9 @@
   "author": "TCOTC",
   "url": "https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork",
   "version": "0.8.5",
-  "minAppVersion": "2.9.8",
-  "backends": [
-    "windows",
-    "linux",
-    "darwin",
-    "ios",
-    "android",
-    "harmony",
-    "docker"
-  ],
-  "frontends": [
-    "desktop",
-    "mobile",
-    "browser-desktop",
-    "browser-mobile",
-    "desktop-window"
-  ],
+  "minAppVersion": "3.1.0",
+  "backends": ["all"],
+  "frontends": ["all"],
   "displayName": {
     "default": "Document Highlight Search",
     "zh_CN": "文档高亮搜索"
@@ -33,20 +19,7 @@
     "zh_CN": "README_zh_CN.md"
   },
   "funding": {
-    "openCollective": "",
-    "patreon": "",
-    "github": "",
-    "custom": [
-      "https://bento.me/jeffff"
-    ]
+    "custom": ["https://bento.me/jeffff"]
   },
-  "keywords": [
-    "文档",
-    "高亮",
-    "搜索",
-    "Ctrl+F",
-    "document",
-    "highlight",
-    "search"
-  ]
+  "keywords": ["Ctrl+F"]
 }

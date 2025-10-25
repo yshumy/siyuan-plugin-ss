@@ -138,12 +138,7 @@ export default class PluginHighlight extends Plugin {
             },
         });
 
-        // 测试清理机制是否正常工作
-        setTimeout(() => {
-            console.log("Plugin loaded successfully, cleanup mechanism activated");
-        }, 1000);
-
-        console.log(this.i18n.helloPlugin);
+        console.log(this.displayName, this.i18n.pluginOnload);
     }
 
     // 设置全局拖拽事件监听器
@@ -337,14 +332,14 @@ export default class PluginHighlight extends Plugin {
         this.closeSearchDialog();
         this.removeGlobalDragListeners();
         this.stopCleanupTimer(); // 在插件卸载时停止清理
-        console.log(this.i18n.byePlugin);
+        console.log(this.displayName, this.i18n.pluginOnunload);
     }
 
     uninstall() {
         this.closeSearchDialog();
         this.removeGlobalDragListeners();
         this.stopCleanupTimer(); // 在插件卸载时停止清理
-        console.log("siyuan-plugin-hsr-mdzz2048-fork uninstall");
+        console.log(this.displayName, this.i18n.pluginUninstall);
     }
 
     // Mobile
