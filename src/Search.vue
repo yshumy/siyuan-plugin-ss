@@ -292,6 +292,54 @@ function calculateSearchResults(value: string, change: boolean) {
         }
     });
     
+    /**
+     * 检查元素是否可见
+     * 使用最新的 checkVisibility() API 检查元素可见性
+     * 参考：https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
+     * @param element 要检查的元素
+     * @returns 如果元素可见返回 true，否则返回 false
+     */
+    function isElementVisible(element: Element | null): boolean {
+        if (!element) return false;
+        
+        const htmlElement = element as HTMLElement;
+        
+        // 检查是否为 style 元素
+        if (htmlElement.tagName?.toLowerCase() === 'style') {
+            return false;
+        }
+        
+        // 检查元素及其所有祖先元素是否有 fn__none 类（思源笔记用于隐藏元素的类，包括折叠的块）
+        let current: Element | null = element;
+        while (current && current !== document.body) {
+            if ((current as HTMLElement).classList?.contains('fn__none')) {
+                return false;
+            }
+            current = current.parentElement;
+        }
+        
+        // 使用 checkVisibility() API 检查元素可见性
+        // 该方法会自动检查元素及其所有祖先元素的可见性
+        // 包括 display: none、content-visibility: hidden 等
+        // 使用可选参数检查 visibility 和 opacity
+        if (typeof htmlElement.checkVisibility === 'function') {
+            return htmlElement.checkVisibility({
+                visibilityProperty: true,
+                opacityProperty: true,
+            });
+        }
+        
+        // 如果浏览器不支持 checkVisibility()，回退到手动检查
+        // 检查计算样式
+        const style = window.getComputedStyle(htmlElement);
+        if (style.display === 'none' || style.visibility === 'hidden') {
+            return false;
+        }
+        
+        // 递归检查父元素
+        return isElementVisible(htmlElement.parentElement);
+    }
+    
     // 辅助函数：为指定位置创建 Range
     function createRangeForPosition(startIndex: number, endIndex: number, cur_nodeIdx: number, allTextNodes: Text[], incr_lens: number[], processedRanges: Set<string>, ranges: Range[]): boolean {
         try {
@@ -316,8 +364,15 @@ function calculateSearchResults(value: string, change: boolean) {
             range.setStart(startNode, startOffset);
             range.setEnd(endNode, endOffset);
             
-            // 排除 style 元素内的搜索结果
-            if (range.commonAncestorContainer.parentElement?.tagName?.toLowerCase() !== 'style') {
+            // 检查 Range 的起始和结束容器所在的元素是否可见
+            // 文本节点本身不可见，需要检查包含它们的元素
+            // startNode 和 endNode 都是 Text 节点，所以需要获取它们的父元素
+            const startContainerElement = startNode.parentElement;
+            const endContainerElement = endNode.parentElement;
+            
+            // 只有当起始和结束容器所在的元素都可见时，才添加 Range
+            if (startContainerElement && endContainerElement && 
+                isElementVisible(startContainerElement) && isElementVisible(endContainerElement)) {
                 ranges.push(range);
                 processedRanges.add(`${startIndex}-${endIndex}`);
                 return true;
