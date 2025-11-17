@@ -207,12 +207,19 @@ function calculateSearchResults(value: string, change: boolean) {
     }
 
     // 获取文档根,后续直接对全文档文本进行搜索
-    const docRoot = props.edit.querySelector(':scope > .protyle:not(.fn__none) :is(.protyle-content:not(.fn__none) .protyle-wysiwyg, .protyle-preview:not(.fn__none) .b3-typography)') as HTMLElement;
-    if (!docRoot) return [];
+    // 选择器1：桌面端正常打开的页签文档（直接子元素查找）
+    let docRoot = props.edit.querySelector(':scope > .protyle:not(.fn__none) :is(.protyle-content:not(.fn__none) .protyle-wysiwyg, .protyle-preview:not(.fn__none) .b3-typography)') as HTMLElement;
+    
+    // 选择器2：桌面端浮窗和搜索窗口、移动端编辑器（内部查找，不限制为直接子元素）
+    if (!docRoot) {
+        docRoot = props.edit.querySelector('.protyle:not(.fn__none) :is(.protyle-content:not(.fn__none) .protyle-wysiwyg, .protyle-preview:not(.fn__none) .b3-typography)') as HTMLElement;
+    }
+    
+    if (!docRoot) {
+        return [];
+    }
+    
     const docText = docRoot.textContent.toLowerCase();
-    // console.log("props.edit: ", props.edit);
-    // console.log("docRoot: ", docRoot);
-    // console.log("docText: ", docText);
 
     // 准备一个数组来保存所有文本节点
     const allTextNodes = [];
