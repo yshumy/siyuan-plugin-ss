@@ -353,12 +353,22 @@ function calculateSearchResults(value: string, change: boolean) {
             const range = document.createRange();
             
             // 找到起始位置对应的文本节点和偏移量
+            // incr_lens[i] 是到第 i 个节点（包含）为止的累计长度
+            // 如果 startIndex < incr_lens[i]，说明 startIndex 在第 i 个节点内
+            // 如果 startIndex == incr_lens[i]，说明 startIndex 在第 i 个节点的末尾，应该属于下一个节点
+            // 如果 startIndex > incr_lens[i]，说明 startIndex 在第 i 个节点之后，应该继续查找
             let startNodeIdx = cur_nodeIdx;
             while (startNodeIdx < allTextNodes.length - 1 && incr_lens[startNodeIdx] <= startIndex) {
                 startNodeIdx++
             }
             const startNode = allTextNodes[startNodeIdx];
             const startOffset = startIndex - (startNodeIdx > 0 ? incr_lens[startNodeIdx - 1] : 0);
+            
+            // 验证起始节点和偏移量是否正确
+            const startNodeLen = startNode.textContent.length;
+            if (startOffset < 0 || startOffset > startNodeLen) {
+                return false;
+            }
             
             // 找到结束位置对应的文本节点和偏移量
             let endNodeIdx = startNodeIdx;
@@ -367,6 +377,12 @@ function calculateSearchResults(value: string, change: boolean) {
             }
             const endNode = allTextNodes[endNodeIdx];
             const endOffset = endIndex - (endNodeIdx > 0 ? incr_lens[endNodeIdx - 1] : 0);
+            
+            // 验证结束节点和偏移量是否正确
+            const endNodeLen = endNode.textContent.length;
+            if (endOffset < 0 || endOffset > endNodeLen) {
+                return false;
+            }
             
             range.setStart(startNode, startOffset);
             range.setEnd(endNode, endOffset);
@@ -393,6 +409,9 @@ function calculateSearchResults(value: string, change: boolean) {
     // 辅助函数：将标准化后的位置转换为原始文档中的位置
     function findOriginalPosition(originalText: string, normalizedText: string, normalizedIndex: number): number {
         // 通过比较原始文本和标准化文本，精确定位对应位置
+        // 关键：我们需要找到原始文本中对应标准化文本 normalizedIndex 位置的字符
+        // 这个字符应该是第一个非零宽字符，且它在标准化文本中的位置是 normalizedIndex
+        
         let originalIndex = 0;
         let normalizedIndexCount = 0;
         
@@ -405,7 +424,10 @@ function calculateSearchResults(value: string, change: boolean) {
             originalIndex++;
         }
         
-        // 验证找到的位置是否正确：检查从该位置开始的文本是否与标准化文本匹配
+        // 现在 originalIndex 指向原始文本中对应标准化文本 normalizedIndex 位置的字符
+        // 但我们需要确保这个位置是正确的，即从该位置开始，去除零宽字符后应该匹配标准化文本
+        
+        // 验证找到的位置是否正确
         if (normalizedIndexCount === normalizedIndex && originalIndex <= originalText.length) {
             // 验证：从找到的位置开始，去除零宽字符后应该与标准化文本从 normalizedIndex 开始的部分匹配
             const remainingOriginal = originalText.slice(originalIndex).replace(/[\u200B-\u200D\uFEFF]/g, '');
@@ -413,6 +435,11 @@ function calculateSearchResults(value: string, change: boolean) {
             
             // 如果剩余部分匹配，说明位置正确
             if (remainingOriginal.startsWith(remainingNormalized.substring(0, Math.min(remainingOriginal.length, remainingNormalized.length)))) {
+                // 但是，如果 originalIndex 指向的是零宽字符，我们需要跳过它，找到第一个非零宽字符
+                // 因为 range 的起始位置应该指向实际文本的开始，而不是零宽字符
+                while (originalIndex < originalText.length && /[\u200B-\u200D\uFEFF]/.test(originalText[originalIndex])) {
+                    originalIndex++;
+                }
                 return originalIndex;
             }
         }
@@ -504,7 +531,6 @@ function scrollContainerToRange(range: Range, container: HTMLElement) {
     const containerStyle = window.getComputedStyle(container);
     
     // 计算 range 的中心位置（相对于视口）
-    const rangeCenterY = (rangeRect.top + rangeRect.bottom) / 2;
     const rangeCenterX = (rangeRect.left + rangeRect.right) / 2;
     
     // 检查容器的滚动方向
@@ -516,6 +542,8 @@ function scrollContainerToRange(range: Range, container: HTMLElement) {
     // 处理垂直滚动
     if (canScrollY) {
         // 计算 range 中心相对于容器内容的垂直位置
+        // 公式：range 中心在文档中的位置 = range 中心在屏幕上的位置 - 容器顶部在屏幕上的位置 + 容器当前滚动位置
+        const rangeCenterY = (rangeRect.top + rangeRect.bottom) / 2;
         const rangeCenterYInContent = rangeCenterY - containerRect.top + container.scrollTop;
         
         // 计算使 range 中心对齐到容器中心需要的 scrollTop
