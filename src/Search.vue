@@ -398,6 +398,92 @@ function clearHighlight() {
 defineExpose({
     highlightHitResult
 });
+/**
+ * 查找包含指定元素的所有滚动容器（从最内层到最外层）
+ * 支持垂直和横向滚动容器
+ * @param element 要查找的元素
+ * @returns 滚动容器数组，从最内层到最外层
+ */
+function findScrollContainers(element: Element): HTMLElement[] {
+    const containers: HTMLElement[] = [];
+    let current: Element | null = element;
+    
+    // 收集所有滚动容器（从内到外）
+    while (current && current !== document.body) {
+        const htmlElement = current as HTMLElement;
+        const overflowY = window.getComputedStyle(htmlElement).overflowY;
+        const overflowX = window.getComputedStyle(htmlElement).overflowX;
+        
+        // 检查是否为滚动容器（垂直或横向）
+        const canScrollY = (overflowY === 'auto' || overflowY === 'scroll') && 
+                          htmlElement.scrollHeight > htmlElement.clientHeight;
+        const canScrollX = (overflowX === 'auto' || overflowX === 'scroll') && 
+                          htmlElement.scrollWidth > htmlElement.clientWidth;
+        
+        if (canScrollY || canScrollX) {
+            containers.push(htmlElement);
+        }
+        
+        current = current.parentElement;
+    }
+    
+    return containers;
+}
+
+/**
+ * 滚动容器以使 range 可见并尽量居中（支持垂直和横向滚动）
+ * 在每一层容器中都尽量将关键词滚动到容器的几何中心
+ * @param range 要滚动到的 range
+ * @param container 滚动容器
+ */
+function scrollContainerToRange(range: Range, container: HTMLElement) {
+    const rangeRect = range.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const containerStyle = window.getComputedStyle(container);
+    
+    // 计算 range 的中心位置（相对于视口）
+    const rangeCenterY = (rangeRect.top + rangeRect.bottom) / 2;
+    const rangeCenterX = (rangeRect.left + rangeRect.right) / 2;
+    
+    // 检查容器的滚动方向
+    const overflowY = containerStyle.overflowY;
+    const overflowX = containerStyle.overflowX;
+    const canScrollY = (overflowY === 'auto' || overflowY === 'scroll') && container.scrollHeight > container.clientHeight;
+    const canScrollX = (overflowX === 'auto' || overflowX === 'scroll') && container.scrollWidth > container.clientWidth;
+    
+    // 处理垂直滚动
+    if (canScrollY) {
+        // 计算 range 中心相对于容器内容的垂直位置
+        const rangeCenterYInContent = rangeCenterY - containerRect.top + container.scrollTop;
+        
+        // 计算使 range 中心对齐到容器中心需要的 scrollTop
+        const targetScrollTop = rangeCenterYInContent - container.clientHeight / 2;
+        
+        // 计算最大和最小滚动位置
+        const maxScrollTop = container.scrollHeight - container.clientHeight;
+        const minScrollTop = 0;
+        
+        // 滚动到目标位置，但确保在有效范围内
+        container.scrollTop = Math.max(minScrollTop, Math.min(targetScrollTop, maxScrollTop));
+    }
+    
+    // 处理横向滚动
+    if (canScrollX) {
+        // 计算 range 中心相对于容器内容的横向位置
+        const rangeCenterXInContent = rangeCenterX - containerRect.left + container.scrollLeft;
+        
+        // 计算使 range 中心对齐到容器中心需要的 scrollLeft
+        const targetScrollLeft = rangeCenterXInContent - container.clientWidth / 2;
+        
+        // 计算最大和最小滚动位置
+        const maxScrollLeft = container.scrollWidth - container.clientWidth;
+        const minScrollLeft = 0;
+        
+        // 滚动到目标位置，但确保在有效范围内
+        container.scrollLeft = Math.max(minScrollLeft, Math.min(targetScrollLeft, maxScrollLeft));
+    }
+}
+
 function scroollIntoRanges(index: number, scroll: boolean = true) {
     const ranges = resultRange.value as Range[]
     if (!ranges || ranges.length === 0) {
@@ -408,12 +494,32 @@ function scroollIntoRanges(index: number, scroll: boolean = true) {
     // parent.scrollIntoView({ behavior: 'smooth', block: "center" })
 
     if (scroll) {
-        // console.log("scrollIntoRanges: ", props.edit)
-        const docContentElement = props.edit.querySelector(':scope > .protyle:not(.fn__none) :is(.protyle-content:not(.fn__none), .protyle-preview:not(.fn__none))') as HTMLElement;
-        let doc_rect=docContentElement.getBoundingClientRect()
-        let mid_y=doc_rect.top+doc_rect.height/2
-        let range_rect = range.getBoundingClientRect();
-        docContentElement.scrollBy(0,range_rect.y-mid_y)
+        // 获取 range 的公共祖先元素
+        const commonAncestor = range.commonAncestorContainer;
+        const ancestorElement = commonAncestor.nodeType === Node.TEXT_NODE 
+            ? commonAncestor.parentElement 
+            : commonAncestor as Element;
+        
+        if (ancestorElement) {
+            // 查找所有包含该 range 的滚动容器（从最内层到最外层）
+            const scrollContainers = findScrollContainers(ancestorElement);
+            
+            // 从最内层到最外层，依次滚动每个容器
+            // 每次滚动后，重新获取 range 的位置以确保准确性
+            scrollContainers.forEach(container => {
+                // 重新获取 range 的位置（因为之前的滚动可能已经改变了位置）
+                scrollContainerToRange(range, container);
+            });
+            
+            // 如果没有任何滚动容器，或者需要滚动主文档容器，则使用居中逻辑
+            if (scrollContainers.length === 0) {
+                const docContentElement = props.edit.querySelector(':scope > .protyle:not(.fn__none) :is(.protyle-content:not(.fn__none), .protyle-preview:not(.fn__none))') as HTMLElement;
+                if (docContentElement) {
+                    // 使用相同的居中逻辑处理主文档容器
+                    scrollContainerToRange(range, docContentElement);
+                }
+            }
+        }
     }
   
     CSS.highlights.set("search-focus", new Highlight(range))

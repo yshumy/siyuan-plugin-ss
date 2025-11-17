@@ -14,6 +14,10 @@
 
 #### 近期更新
 
+##### 2025-11-17
+
+- 支持多层滚动容器的居中显示
+
 ##### 2025-09-04
 
 - 解决与原生搜索高亮的冲突 [#45](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/45)
