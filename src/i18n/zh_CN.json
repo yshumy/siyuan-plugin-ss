@@ -2,19 +2,6 @@
   "pluginOnload": "插件已启用",
   "pluginOnunload": "插件已禁用",
   "pluginUninstall": "插件已卸载",
-  "addTopBarIcon": "使用插件添加一个顶栏按钮",
-  "cancel": "取消",
-  "save": "保存",
-  "byeMenu": "再见，菜单！",
   "showDialog": "弹出搜索框",
-  "getTab": "在日志中打印出已打开的所有自定义页签",
-  "removedData": "数据已删除",
-  "confirmRemove": "确认删除 ${name} 中的数据？",
-  "insertEmoji": "插入表情",
-  "removeSpace": "移除空格",
-  "topBarTitle": "文档高亮搜索",
-  "search": "按下 Enter 搜索",
-  "back": "上一个",
-  "forward": "下一个",
-  "close": "关闭"
+  "topBarTitle": "文档高亮搜索"
 }

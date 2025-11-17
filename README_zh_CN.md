@@ -1,9 +1,5 @@
 [English](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/blob/main/README.md)
 
-# 思源笔记 文档高亮搜索 插件
-
-> 注意：如果更新后无法打开搜索框，请重启一次思源笔记
-
 #### 如何使用
 
 启用后会在顶栏右边添加一个按钮，点击即可打开搜索。

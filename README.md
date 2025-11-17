@@ -1,7 +1,5 @@
 [中文](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/blob/main/README_zh_CN.md)
 
-# SiYuan Document Highlight Search plugin
-
 #### How to use
 
 When enabled, a button will be added to the right of the top bar. Click to open the search.

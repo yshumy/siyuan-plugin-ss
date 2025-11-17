@@ -63,3 +63,19 @@
 
 - 切换页签时重新搜索 [#2](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/2)
 - 支持在导出预览模式搜索 [#39](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/39)
+
+##### 2025-09-01
+
+- 支持搜索包含零宽空格的文本 [#42](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/42)
+
+##### 2025-09-04
+
+- 解决与原生搜索高亮的冲突 [#45](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/45)
+- 存在搜索页签时，高亮搜索匹配不到当前文档 [#29](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/29)
+
+##### 2025-11-17
+
+- 支持多层滚动容器的居中显示
+- 搜索时检查元素可见性，仅显示可见的元素作为搜索结果
+- 修复浮窗搜索和移动端搜索功能失效的问题
+- 修复因 .protyle-attr 元素中的零宽空格导致搜索结果定位不准确的问题
