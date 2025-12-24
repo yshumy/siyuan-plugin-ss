@@ -10,6 +10,10 @@
 
 #### 近期更新
 
+##### 2025-12-24
+
+- 修复光标在浮窗内的 Callout block 中时无法打开搜索框的问题
+
 ##### 2025-11-17
 
 - 支持多层滚动容器的居中显示
@@ -38,7 +42,3 @@
 - 编辑文档后刷新高亮 [#24](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/24)
 - 支持选中文本搜索 [#20](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/20)
 - 支持在浮窗中搜索 [#27](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/27)
-
-##### 2025-07-01
-
-- 支持在浏览器、桌面端新窗口、移动端中使用插件 [#23](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/23)
