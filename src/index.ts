@@ -372,13 +372,16 @@ export default class PluginHighlight extends Plugin {
         if (edits.length === 0) {
             // // 一个浮窗多个编辑器
             // edits = [document.activeElement?.closest('.block__popover')?.querySelector('.block__content')] as any;
-            if (document.activeElement.classList.contains('protyle-wysiwyg')) {
-                edits = [document.activeElement.closest('.protyle')] as any;
+            // if (document.activeElement.classList.contains('protyle-wysiwyg')) {
+            //     edits = [document.activeElement.closest('.protyle')] as any;
+            // }
+            const protyle = document.activeElement?.closest('.protyle'); // activeElement 可能在 Callout block 内
+            if (protyle) {
+                edits = [protyle] as any;
+            } else {
+                console.error("no protyle found");
+                return;
             }
-        }
-        if (edits.length === 0) {
-            console.error("no edits found");
-            return;
         }
         edits.forEach((edit: { querySelector: (arg0: string) => any; insertAdjacentElement: (arg0: string, arg1: HTMLDivElement) => void; appendChild: (arg0: HTMLDivElement) => void; }) => {
             let existingElement: any;
