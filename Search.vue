@@ -236,62 +236,55 @@ async function replaceAll() {
     // 确认替换
     if (!confirm(`${props.plugin?.i18n?.replaceAll || 'Replace All'} "${searchText.value}" -> "${replaceText.value}"?`)) return;
 
-    // 1. 按块 ID 对 Range 进行分组
-    const blockRangesMap = new Map<string, { element: HTMLElement, ranges: Range[] }>();
-    
+    // 1. 收集所有受影响的块 ID
+    const blockIds = new Set<string>();
     for (const range of resultRange.value) {
         const container = range.commonAncestorContainer;
         const element = (container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement) as HTMLElement;
-        const blockElement = element.closest('[data-node-id]') as HTMLElement;
-        
+        const blockElement = element.closest('[data-node-id]');
         if (blockElement) {
-            const blockId = blockElement.getAttribute('data-node-id')!;
-            if (!blockRangesMap.has(blockId)) {
-                blockRangesMap.set(blockId, { element: blockElement, ranges: [] });
-            }
-            blockRangesMap.get(blockId)!.ranges.push(range);
+            const id = blockElement.getAttribute('data-node-id');
+            if (id) blockIds.add(id);
         }
     }
 
-    // 2. 逐个块进行替换和更新
-    for (const [blockId, info] of blockRangesMap) {
+    // 2. 逐个块进行处理
+    for (const blockId of blockIds) {
         try {
-            // 在每个块内部，必须倒序替换，以保证偏移量在当前块内有效
-            const sortedRanges = [...info.ranges].reverse();
-            
-            for (const range of sortedRanges) {
-                const startNode = range.startContainer;
-                const endNode = range.endContainer;
-                
-                // 仅处理单文本节点内的替换，确保安全
-                if (startNode === endNode && startNode.nodeType === Node.TEXT_NODE) {
-                    const text = startNode.textContent || "";
-                    const startOffset = range.startOffset;
-                    const endOffset = range.endOffset;
-                    startNode.textContent = text.substring(0, startOffset) + replaceText.value + text.substring(endOffset);
-                }
-            }
-
-            // 替换完该块内所有匹配项后，一次性同步到思源
-            // 使用 outerHTML 包含块标签本身，或者 innerHTML 取决于 API 要求
-            // 思源 updateBlock dataType: "dom" 通常期望的是块的 innerHTML
-            const html = info.element.innerHTML;
-            
-            await (window as any).siyuan.fetchPost("/api/block/updateBlock", {
-                dataType: "dom",
-                data: html,
+            // 获取块的原始 Markdown 内容
+            const response = await (window as any).siyuan.fetchPost("/api/block/getBlockKramdown", {
                 id: blockId
             });
+            
+            if (response && response.code === 0 && response.data) {
+                let kramdown = response.data.kramdown;
+                
+                // 执行全局替换
+                // 使用正则表达式进行替换，注意转义特殊字符
+                const escapedSearch = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(escapedSearch, caseSensitive.value ? 'g' : 'gi');
+                
+                const newKramdown = kramdown.replace(regex, replaceText.value);
+                
+                // 如果内容确实发生了变化，则更新块
+                if (newKramdown !== kramdown) {
+                    await (window as any).siyuan.fetchPost("/api/block/updateBlock", {
+                        dataType: "markdown",
+                        data: newKramdown,
+                        id: blockId
+                    });
+                }
+            }
         } catch (e) {
-            console.error(`Failed to update block ${blockId}:`, e);
+            console.error(`Failed to replace in block ${blockId}:`, e);
         }
     }
 
-    // 3. 替换完成后，清除旧的高亮并重新搜索
-    // 延迟一小会儿确保思源编辑器已完成内部更新
+    // 3. 替换完成后，重置搜索状态
+    // 强制延迟以等待思源后端处理完毕
     setTimeout(() => {
         highlightHitResult(searchText.value, true);
-    }, 100);
+    }, 300);
 }
 
 // 计算搜索结果并更新数字，不执行高亮操作
