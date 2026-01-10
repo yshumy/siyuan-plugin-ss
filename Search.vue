@@ -251,8 +251,8 @@ async function replaceAll() {
     // 2. 逐个块进行处理
     for (const blockId of blockIds) {
         try {
-            // 获取块的原始 Markdown 内容
-            const response = await (window as any).siyuan.fetchPost("/api/block/getBlockKramdown", {
+            // 使用插件实例提供的 fetchPost 方法，这是最可靠的调用方式
+            const response = await props.plugin.fetchPost("/api/block/getBlockKramdown", {
                 id: blockId
             });
             
@@ -260,15 +260,13 @@ async function replaceAll() {
                 let kramdown = response.data.kramdown;
                 
                 // 执行全局替换
-                // 使用正则表达式进行替换，注意转义特殊字符
                 const escapedSearch = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const regex = new RegExp(escapedSearch, caseSensitive.value ? 'g' : 'gi');
                 
                 const newKramdown = kramdown.replace(regex, replaceText.value);
                 
-                // 如果内容确实发生了变化，则更新块
                 if (newKramdown !== kramdown) {
-                    await (window as any).siyuan.fetchPost("/api/block/updateBlock", {
+                    await props.plugin.fetchPost("/api/block/updateBlock", {
                         dataType: "markdown",
                         data: newKramdown,
                         id: blockId
@@ -276,7 +274,7 @@ async function replaceAll() {
                 }
             }
         } catch (e) {
-            console.error(`Failed to replace in block ${blockId}:`, e);
+            console.error(`[Search Plugin] Replace failed for block ${blockId}:`, e);
         }
     }
 
