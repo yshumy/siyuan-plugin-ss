@@ -4,5 +4,8 @@
   "pluginUninstall": "plugin uninstalled",
   "showDialog": "Show search box",
   "topBarTitle": "Highlight search",
-  "caseSensitive": "Case Sensitive"
+  "caseSensitive": "Case Sensitive",
+  "replace": "Replace",
+  "replaceAll": "Replace All",
+  "replacePlaceholder": "Replace with..."
 }

@@ -24,7 +24,7 @@
             </div>
             <div @click="toggleReplace" 
                  :class="{'search-tool--active': showReplace}"
-                 :title="plugin?.i18n?.replaceAll || 'Replace'">
+                 :title="plugin?.i18n?.replace || 'Replace'">
                 <Svg icon="#iconReplace" class="icon--14_14"></Svg>
             </div>
             <div @click="clickLast">
