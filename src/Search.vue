@@ -17,6 +17,11 @@
               :class="{ 'search-count--draggable': !isMobile() }"
               @mousedown="handleMouseDown">{{ resultIndex + "/" + resultCount }}</span>
         <div class="search-tools">
+            <div @click="toggleCaseSensitive" 
+                 :class="{'search-tool--active': caseSensitive}"
+                 :title="plugin?.i18n?.caseSensitive || 'Case Sensitive'">
+                <span class="case-icon">Aa</span>
+            </div>
             <div @click="clickLast">
                 <Svg icon="#iconUp" class="icon--14_14"></Svg>
             </div>
@@ -39,6 +44,7 @@ const searchText = ref("")
 const resultCount = ref(0)
 const resultIndex = ref(0)
 const resultRange = ref()
+const caseSensitive = ref(false)
 const placeholder = "🔍︎ (Shift) + Enter"
 
 /**
@@ -189,10 +195,15 @@ function handleInput() {
     }, doneTypingInterval);
 }
 
+function toggleCaseSensitive() {
+    caseSensitive.value = !caseSensitive.value;
+    highlightHitResult(searchText.value, true);
+}
+
 // 计算搜索结果并更新数字，不执行高亮操作
 function calculateSearchResults(value: string, change: boolean) {
     // 为空判断
-    const str = value.trim().toLowerCase()
+    const str = caseSensitive.value ? value.trim() : value.trim().toLowerCase()
     if (!str) {
         // 当搜索文本为空时，清除已有的高亮
         // 但不需要重置计数，方便撤回文本框编辑的时候恢复索引位置
@@ -219,7 +230,7 @@ function calculateSearchResults(value: string, change: boolean) {
         return [];
     }
     
-    const docText = docRoot.textContent.toLowerCase();
+    const docText = caseSensitive.value ? docRoot.textContent : docRoot.textContent.toLowerCase();
 
     // 准备一个数组来保存所有文本节点
     const allTextNodes = [];
@@ -258,6 +269,7 @@ function calculateSearchResults(value: string, change: boolean) {
         }
         
         // 方法2：搜索去除零宽空格后的文档内容
+        // 注意：这里 docText 已经是根据 caseSensitive 处理过的
         const normalizedDocText = docText.replace(/[\u200B-\u200D\uFEFF]/g, '');
         const normalizedSearchStr = searchStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
         
@@ -691,6 +703,22 @@ function clickClose() { // 关闭
     display: flex;
     margin-left: 5px;
     align-items: center;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px;
+}
+.search-tools > div:hover {
+    background-color: var(--b3-theme-hover);
+}
+.search-tool--active {
+    color: var(--b3-theme-primary);
+    background-color: var(--b3-theme-hover);
+}
+.case-icon {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0 4px;
+    user-select: none;
 }
 .icon--14_14 {
     width: 14px;
