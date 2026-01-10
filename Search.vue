@@ -22,6 +22,11 @@
                  :title="plugin?.i18n?.caseSensitive || 'Case Sensitive'">
                 <span class="case-icon">Aa</span>
             </div>
+            <div @click="toggleReplace" 
+                 :class="{'search-tool--active': showReplace}"
+                 :title="plugin?.i18n?.replaceAll || 'Replace'">
+                <Svg icon="#iconReplace" class="icon--14_14"></Svg>
+            </div>
             <div @click="clickLast">
                 <Svg icon="#iconUp" class="icon--14_14"></Svg>
             </div>
@@ -33,7 +38,7 @@
             </div>
         </div>
     </div>
-    <div class="replace-dialog" v-if="resultCount > 0">
+    <div class="replace-dialog" v-if="showReplace">
         <div class="b3-form__icon search-input">
             <input
                 type="text"
@@ -60,6 +65,7 @@ const resultCount = ref(0)
 const resultIndex = ref(0)
 const resultRange = ref()
 const caseSensitive = ref(false)
+const showReplace = ref(false)
 const replaceText = ref("")
 const placeholder = "🔍︎ (Shift) + Enter"
 
@@ -214,6 +220,10 @@ function handleInput() {
 function toggleCaseSensitive() {
     caseSensitive.value = !caseSensitive.value;
     highlightHitResult(searchText.value, true);
+}
+
+function toggleReplace() {
+    showReplace.value = !showReplace.value;
 }
 
 /**
