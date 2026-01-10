@@ -59,6 +59,7 @@
 import { ref, onMounted, onUnmounted, defineProps } from "vue";
 import Svg from "./Svg.vue"
 import { isMobile } from "./index"
+import { fetchSyncPost } from "siyuan";
 
 const searchText = ref("")
 const resultCount = ref(0)
@@ -251,8 +252,8 @@ async function replaceAll() {
     // 2. 逐个块进行处理
     for (const blockId of blockIds) {
         try {
-            // 使用插件实例提供的 fetchPost 方法，这是最可靠的调用方式
-            const response = await props.plugin.fetchPost("/api/block/getBlockKramdown", {
+            // 使用全局的 fetchSyncPost 函数
+            const response = await fetchSyncPost("/api/block/getBlockKramdown", {
                 id: blockId
             });
             
@@ -262,11 +263,10 @@ async function replaceAll() {
                 // 执行全局替换
                 const escapedSearch = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const regex = new RegExp(escapedSearch, caseSensitive.value ? 'g' : 'gi');
-                
                 const newKramdown = kramdown.replace(regex, replaceText.value);
                 
                 if (newKramdown !== kramdown) {
-                    await props.plugin.fetchPost("/api/block/updateBlock", {
+                    await fetchSyncPost("/api/block/updateBlock", {
                         dataType: "markdown",
                         data: newKramdown,
                         id: blockId
