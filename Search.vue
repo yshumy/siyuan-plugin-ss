@@ -236,61 +236,47 @@ async function replaceAll() {
     // 确认替换
     if (!confirm(`${props.plugin?.i18n?.replaceAll || 'Replace All'} "${searchText.value}" -> "${replaceText.value}"?`)) return;
 
-    const ranges = [...resultRange.value] as Range[];
-    // 倒序排列，防止前面的替换影响后面的偏移量
-    // 注意：这里的 ranges 已经是按文档顺序排列的，所以直接 reverse 即可
-    ranges.reverse();
-
-    // 按块 ID 分组处理，减少 API 调用次数
-    const blockUpdates = new Map<string, { element: HTMLElement, text: string }>();
-
-    for (const range of ranges) {
-        let container = range.commonAncestorContainer;
-        let element = (container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement) as HTMLElement;
-        
-        // 向上查找所属的思源块 (拥有 data-node-id 属性)
+    // 1. 按块 ID 对 Range 进行分组
+    const blockRangesMap = new Map<string, { element: HTMLElement, ranges: Range[] }>();
+    
+    for (const range of resultRange.value) {
+        const container = range.commonAncestorContainer;
+        const element = (container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement) as HTMLElement;
         const blockElement = element.closest('[data-node-id]') as HTMLElement;
-        if (!blockElement) continue;
         
-        const blockId = blockElement.getAttribute('data-node-id');
-        if (!blockId) continue;
-
-        // 获取块的当前文本内容（这里简单处理，实际可能需要更复杂的 HTML/Markdown 处理）
-        // 但由于我们是在 DOM 层面操作，且思源的编辑器是所见即所得的，
-        // 我们可以直接操作块内的文本节点。
-        
-        // 为了保证准确性，我们直接在 Range 上进行替换操作
-        // 注意：直接操作 DOM 不会触发思源的同步，所以我们需要在操作后获取块的 HTML 并调用 API
-        const startNode = range.startContainer;
-        const startOffset = range.startOffset;
-        const endNode = range.endContainer;
-        const endOffset = range.endOffset;
-
-        if (startNode === endNode && startNode.nodeType === Node.TEXT_NODE) {
-            const text = startNode.textContent || "";
-            startNode.textContent = text.substring(0, startOffset) + replaceText.value + text.substring(endOffset);
-        } else {
-            // 跨节点的 Range 替换较为复杂，这里暂不处理或提示
-            console.warn("Cross-node replacement is not supported yet.");
-            continue;
-        }
-
-        // 记录需要更新的块
-        if (!blockUpdates.has(blockId)) {
-            blockUpdates.set(blockId, { element: blockElement, text: "" });
+        if (blockElement) {
+            const blockId = blockElement.getAttribute('data-node-id')!;
+            if (!blockRangesMap.has(blockId)) {
+                blockRangesMap.set(blockId, { element: blockElement, ranges: [] });
+            }
+            blockRangesMap.get(blockId)!.ranges.push(range);
         }
     }
 
-    // 调用思源 API 同步数据
-    for (const [blockId, info] of blockUpdates) {
+    // 2. 逐个块进行替换和更新
+    for (const [blockId, info] of blockRangesMap) {
         try {
-            // 获取修改后的块 HTML
-            // 思源的编辑器内容在 .protyle-wysiwyg 内部
-            // 我们需要获取块的 innerHTML 并通过 API 更新
+            // 在每个块内部，必须倒序替换，以保证偏移量在当前块内有效
+            const sortedRanges = [...info.ranges].reverse();
+            
+            for (const range of sortedRanges) {
+                const startNode = range.startContainer;
+                const endNode = range.endContainer;
+                
+                // 仅处理单文本节点内的替换，确保安全
+                if (startNode === endNode && startNode.nodeType === Node.TEXT_NODE) {
+                    const text = startNode.textContent || "";
+                    const startOffset = range.startOffset;
+                    const endOffset = range.endOffset;
+                    startNode.textContent = text.substring(0, startOffset) + replaceText.value + text.substring(endOffset);
+                }
+            }
+
+            // 替换完该块内所有匹配项后，一次性同步到思源
+            // 使用 outerHTML 包含块标签本身，或者 innerHTML 取决于 API 要求
+            // 思源 updateBlock dataType: "dom" 通常期望的是块的 innerHTML
             const html = info.element.innerHTML;
             
-            // 调用思源 SDK 的更新块接口
-            // 注意：这里假设插件实例上有 fetch 相关的工具或直接使用全局 fetch
             await (window as any).siyuan.fetchPost("/api/block/updateBlock", {
                 dataType: "dom",
                 data: html,
@@ -301,8 +287,11 @@ async function replaceAll() {
         }
     }
 
-    // 替换完成后，清除旧的高亮并重新搜索
-    highlightHitResult(searchText.value, true);
+    // 3. 替换完成后，清除旧的高亮并重新搜索
+    // 延迟一小会儿确保思源编辑器已完成内部更新
+    setTimeout(() => {
+        highlightHitResult(searchText.value, true);
+    }, 100);
 }
 
 // 计算搜索结果并更新数字，不执行高亮操作
