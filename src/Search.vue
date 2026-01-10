@@ -22,6 +22,11 @@
                  :title="plugin?.i18n?.caseSensitive || 'Case Sensitive'">
                 <span class="case-icon">Aa</span>
             </div>
+            <div @click="toggleReplace" 
+                 :class="{'search-tool--active': showReplace}"
+                 :title="plugin?.i18n?.replaceAll || 'Replace'">
+                <Svg icon="#iconReplace" class="icon--14_14"></Svg>
+            </div>
             <div @click="clickLast">
                 <Svg icon="#iconUp" class="icon--14_14"></Svg>
             </div>
@@ -33,18 +38,36 @@
             </div>
         </div>
     </div>
+    <div class="replace-dialog" v-if="showReplace">
+        <div class="b3-form__icon search-input">
+            <input
+                type="text"
+                class="b3-text-field fn__size200"
+                spellcheck="false"
+                :placeholder="plugin?.i18n?.replacePlaceholder || 'Replace with...'"
+                v-model="replaceText"
+                @keydown.enter.exact="replaceAll()"
+            />
+        </div>
+        <button class="b3-button b3-button--outline replace-all-btn" @click="replaceAll">
+            {{ plugin?.i18n?.replaceAll || 'Replace All' }}
+        </button>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, defineProps } from "vue";
 import Svg from "./Svg.vue"
 import { isMobile } from "./index"
+import { fetchSyncPost } from "siyuan";
 
 const searchText = ref("")
 const resultCount = ref(0)
 const resultIndex = ref(0)
 const resultRange = ref()
 const caseSensitive = ref(false)
+const showReplace = ref(false)
+const replaceText = ref("")
 const placeholder = "🔍︎ (Shift) + Enter"
 
 /**
@@ -198,6 +221,68 @@ function handleInput() {
 function toggleCaseSensitive() {
     caseSensitive.value = !caseSensitive.value;
     highlightHitResult(searchText.value, true);
+}
+
+function toggleReplace() {
+    showReplace.value = !showReplace.value;
+}
+
+/**
+ * 全部替换功能
+ * 采用倒序替换策略，通过思源 API 批量更新受影响的块
+ */
+async function replaceAll() {
+    if (!searchText.value || !resultRange.value || resultRange.value.length === 0) return;
+    
+    // 确认替换
+    if (!confirm(`${props.plugin?.i18n?.replaceAll || 'Replace All'} "${searchText.value}" -> "${replaceText.value}"?`)) return;
+
+    // 1. 收集所有受影响的块 ID
+    const blockIds = new Set<string>();
+    for (const range of resultRange.value) {
+        const container = range.commonAncestorContainer;
+        const element = (container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement) as HTMLElement;
+        const blockElement = element.closest('[data-node-id]');
+        if (blockElement) {
+            const id = blockElement.getAttribute('data-node-id');
+            if (id) blockIds.add(id);
+        }
+    }
+
+    // 2. 逐个块进行处理
+    for (const blockId of blockIds) {
+        try {
+            // 使用全局的 fetchSyncPost 函数
+            const response = await fetchSyncPost("/api/block/getBlockKramdown", {
+                id: blockId
+            });
+            
+            if (response && response.code === 0 && response.data) {
+                let kramdown = response.data.kramdown;
+                
+                // 执行全局替换
+                const escapedSearch = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(escapedSearch, caseSensitive.value ? 'g' : 'gi');
+                const newKramdown = kramdown.replace(regex, replaceText.value);
+                
+                if (newKramdown !== kramdown) {
+                    await fetchSyncPost("/api/block/updateBlock", {
+                        dataType: "markdown",
+                        data: newKramdown,
+                        id: blockId
+                    });
+                }
+            }
+        } catch (e) {
+            console.error(`[Search Plugin] Replace failed for block ${blockId}:`, e);
+        }
+    }
+
+    // 3. 替换完成后，重置搜索状态
+    // 强制延迟以等待思源后端处理完毕
+    setTimeout(() => {
+        highlightHitResult(searchText.value, true);
+    }, 300);
 }
 
 // 计算搜索结果并更新数字，不执行高亮操作
@@ -679,6 +764,19 @@ function clickClose() { // 关闭
     display: flex;
     align-items: center;
     margin-top: 5px;
+}
+.replace-dialog {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid var(--b3-theme-surface-lighter);
+}
+.replace-all-btn {
+    margin-left: 8px;
+    white-space: nowrap;
+    padding: 4px 8px;
+    font-size: 12px;
 }
 .search-input {
     margin-right: 5px;
