@@ -27,7 +27,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
     // 存储所有搜索组件的回调函数
     private searchComponentCallbacks: Set<(event: CustomEvent) => void> = new Set();
     
-    // 存储多个 Vue 应用实例，用于正确销毁组件
+    // 存储多个 Vue 应用实例,用于正确销毁组件
     private searchApps: Map<Element, any> = new Map();
     
     // 跟踪活跃的搜索组件数量
@@ -92,7 +92,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
             this.activeSearchComponentsCount = Math.max(0, this.activeSearchComponentsCount - 1);
         });
         
-        // 如果所有组件都被清理了，重置状态
+        // 如果所有组件都被清理了,重置状态
         if (this.activeSearchComponentsCount === 0) {
             this.searchComponentCallbacks.clear();
             this.eventBusOff();
@@ -100,9 +100,9 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
             this.lastHighlightComponent = null;
         }
         
-        // 清理无效的回调函数（这里可以根据需要添加更复杂的清理逻辑）
-        // 由于回调函数是组件级别的，当组件被意外移除时，对应的回调也会失效
-        // 但这里我们暂时保留，因为回调函数本身不会造成内存泄漏
+        // 清理无效的回调函数(这里可以根据需要添加更复杂的清理逻辑)
+        // 由于回调函数是组件级别的,当组件被意外移除时,对应的回调也会失效
+        // 但这里我们暂时保留,因为回调函数本身不会造成内存泄漏
     }
     
     // 启动定期清理
@@ -124,12 +124,18 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         }
     }
     
-    // 手动清理无效组件（供外部调用）
+    // 手动清理无效组件(供外部调用)
     public manualCleanup() {
         this.cleanupInvalidComponents();
     }
     
     onload() {
+        console.log(this.displayName, this.i18n.pluginOnload);
+    }
+
+    onLayoutReady() {
+        // 在界面完全加载后再添加顶栏按钮和命令
+        // 此时 i18n 对象已经完全初始化
         this.addTopBar({
             icon: this.icon,
             title: this.i18n.topBarTitle,
@@ -147,8 +153,6 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
                 this.addSearchElement(false); // 传递 false 表示来自快捷键
             },
         });
-
-        console.log(this.displayName, this.i18n.pluginOnload);
     }
 
     // 设置全局拖拽事件监听器
@@ -166,10 +170,10 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
     // 监听事件总线事件
     private eventBusOn() {
         this.eventBus.on("ws-main", this.handleEventBusEvent);
-        this.eventBus.on("loaded-protyle-dynamic", this.handleEventBusEvent); // 动态加载之后需要刷新搜索结果并高亮，但不要滚动
-        this.eventBus.on("loaded-protyle-static", this.handleEventBusEvent); // 浮窗查看上下文会重新加载编辑器，此时需要刷新搜索结果并高亮，但不要滚动
-        this.eventBus.on("switch-protyle", this.handleEventBusEvent); // 切换页签之后需要刷新搜索结果并高亮，但不要滚动
-        this.eventBus.on("switch-protyle-mode", this.handleEventBusEvent); // 切换编辑器模式之后需要刷新搜索结果并高亮，但不要滚动 // https://github.com/siyuan-note/siyuan/issues/15516
+        this.eventBus.on("loaded-protyle-dynamic", this.handleEventBusEvent); // 动态加载之后需要刷新搜索结果并高亮,但不要滚动
+        this.eventBus.on("loaded-protyle-static", this.handleEventBusEvent); // 浮窗查看上下文会重新加载编辑器,此时需要刷新搜索结果并高亮,但不要滚动
+        this.eventBus.on("switch-protyle", this.handleEventBusEvent); // 切换页签之后需要刷新搜索结果并高亮,但不要滚动
+        this.eventBus.on("switch-protyle-mode", this.handleEventBusEvent); // 切换编辑器模式之后需要刷新搜索结果并高亮,但不要滚动 // https://github.com/siyuan-note/siyuan/issues/15516
     }
 
     // 移除事件总线事件监听器
@@ -210,7 +214,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         this.currentDraggingElement = null;
     }
 
-    // 开始拖拽（供组件调用）
+    // 开始拖拽(供组件调用)
     startDragging(element: HTMLElement, startX: number, startY: number) {
         // console.log("startDragging: ", element);
         // 只在桌面端支持拖拽
@@ -226,12 +230,12 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         this.initialTop = rect.top;
     }
 
-    // 重置组件位置（供组件调用）
+    // 重置组件位置(供组件调用)
     resetComponentPosition(element: HTMLElement) {
         // // 只在桌面端支持位置重置
         // if (isMobile()) return;
         
-        // 清除所有定位样式，让组件回到默认位置
+        // 清除所有定位样式,让组件回到默认位置
         element.style.position = '';
         element.style.left = '';
         element.style.top = '';
@@ -246,7 +250,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         // 增加活跃组件计数
         this.activeSearchComponentsCount++;
         
-        // 如果是第一个组件，开始监听事件
+        // 如果是第一个组件,开始监听事件
         if (this.activeSearchComponentsCount === 1) {
             // console.log("开始监听事件总线");
             this.eventBusOn();
@@ -263,7 +267,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
     onSearchComponentUnmounted(callback?: (event: CustomEvent) => void) {
         // console.log("onSearchComponentUnmounted");
         
-        // 如果提供了回调函数，从 Set 中移除它
+        // 如果提供了回调函数,从 Set 中移除它
         if (callback) {
             this.searchComponentCallbacks.delete(callback);
         }
@@ -271,7 +275,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         // 减少活跃组件计数
         this.activeSearchComponentsCount--;
         
-        // 如果是最后一个组件，取消事件监听
+        // 如果是最后一个组件,取消事件监听
         if (this.activeSearchComponentsCount === 0) {
             // console.log("取消监听事件总线");
             this.eventBusOff();
@@ -323,8 +327,8 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
             this.searchApps.delete(element);
         }
         
-        // 减少活跃组件计数（因为组件卸载时会调用 onSearchComponentUnmounted）
-        // 这里不需要手动减少计数，因为 Vue 组件的 onUnmounted 钩子会自动调用 onSearchComponentUnmounted
+        // 减少活跃组件计数(因为组件卸载时会调用 onSearchComponentUnmounted)
+        // 这里不需要手动减少计数,因为 Vue 组件的 onUnmounted 钩子会自动调用 onSearchComponentUnmounted
         
         // 移除特定的 DOM 元素
         try {
@@ -332,10 +336,6 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
         } catch (error) {
             console.error("Error removing DOM element:", error);
         }
-    }
-
-    onLayoutReady() {
-        // console.log(`frontend: ${getFrontend()}; backend: ${getBackend()}`);
     }
 
     onunload() {
@@ -401,7 +401,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
                 existingElement = edit.querySelector(`.${CLASS_NAME}`);
             }
     
-            // 如果不存在具有 CLASS_NAME 类名的元素，则创建一个新的元素并挂载 SearchVue 组件
+            // 如果不存在具有 CLASS_NAME 类名的元素,则创建一个新的元素并挂载 SearchVue 组件
             if (!existingElement) {
                 const element = document.createElement("div");
                 element.className = `${CLASS_NAME} ${mobile ? CLASS_NAME + "--mobile" : ""}`;
@@ -417,7 +417,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
                 // 检查是否有选中的文本
                 const selectedText = this.getSelectedText();
                 if (selectedText) {
-                    // 如果有选中文本，通过 data 属性传递预设文本
+                    // 如果有选中文本,通过 data 属性传递预设文本
                     element.setAttribute('data-preset-text', selectedText);
                 }
 
@@ -444,13 +444,13 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
                     // 检查是否有选中的文本
                     const selectedText = this.getSelectedText();
                     if (selectedText) {
-                        // 如果有选中文本，设置到输入框并搜索
+                        // 如果有选中文本,设置到输入框并搜索
                         inputElement.value = selectedText;
                         // 触发 input 事件以更新 Vue 的响应式数据
                         inputElement.dispatchEvent(new Event('input', { bubbles: true }));
                         // 聚焦输入框
                         inputElement.focus();
-                        // 延迟执行搜索，确保输入框值已更新
+                        // 延迟执行搜索,确保输入框值已更新
                         setTimeout(() => {
                             // 通过 Vue 组件实例触发搜索
                             const vueApp = this.searchApps.get(existingElement);
@@ -463,7 +463,7 @@ export default class PluginHighlight extends Plugin implements IPluginHighlight 
                             }
                         }, 50);
                     } else {
-                        // 如果没有选中文本，按照原来的逻辑聚焦并全选输入框内容
+                        // 如果没有选中文本,按照原来的逻辑聚焦并全选输入框内容
                         inputElement.focus();
                         inputElement.select();
                     }
