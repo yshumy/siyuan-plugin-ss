@@ -7,7 +7,7 @@
                 spellcheck="false"
                 :placeholder="placeholder"
                 v-model="searchText"
-                @keydown.enter.exact="clickNext()"
+                @keydown.enter.exact="handleEnterKey()"
                 @keydown.shift.enter="clickLast()"
                 @keydown.esc.exact="clickClose()"
                 @input="handleInput"
@@ -80,7 +80,7 @@ const placeholder = "🔍︎ (Shift) + Enter"
 
 const searchEngine = new SearchEngine();
 let typingTimer: number | undefined;
-const doneTypingInterval = 400;
+const doneTypingInterval = 800; // 增加防抖时间，减少大型文档下的计算频率
 
 onMounted(() => {
     const inputElement = props.element.querySelector('.search-dialog .b3-text-field') as HTMLInputElement;
@@ -147,10 +147,31 @@ function eventBusHandle(event: CustomEvent) {
 }
 
 function handleInput() {
+    // 如果搜索词为空，立即清除高亮，不等待防抖
+    if (!searchText.value.trim()) {
+        clearTimeout(typingTimer);
+        clearHighlight();
+        resultCount.value = 0;
+        resultIndex.value = 0;
+        return;
+    }
+
     clearTimeout(typingTimer);
     typingTimer = window.setTimeout(() => {
         highlightHitResult(searchText.value, true);
     }, doneTypingInterval);
+}
+
+function handleEnterKey() {
+    // 如果当前有定时器在等待，说明用户按下了回车，我们立即执行搜索
+    if (typingTimer) {
+        clearTimeout(typingTimer);
+        typingTimer = undefined;
+        highlightHitResult(searchText.value, true);
+    } else {
+        // 如果没有定时器，说明搜索已经完成，执行“下一个”功能
+        clickNext();
+    }
 }
 
 function toggleCaseSensitive() {
