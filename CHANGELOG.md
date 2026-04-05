@@ -1,88 +1,101 @@
-# Changelog
+# 更新日志
 
-All notable changes to this project will be documented in this file.
+基于 [原仓库](https://github.com/mdzz2048/siyuan-plugin-hsr) 和 [TCOTC 的 fork](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork) 开发。
 
-## [1.0.0] - 2026-04-05
+变化：
 
-### Added
-- Full document search using SiYuan API
-- Accurate match count across entire document (not just visible DOM)
-- Smart navigation with retry mechanism for unloaded content
-- Block index-based positioning for accurate scrolling
-- Case sensitivity toggle (Aa button)
-- Replace current match function
-- Replace all matches function
-- Drag to move search panel (desktop only)
-- Keyboard shortcuts support
+- 提高浮窗显示层级，不被其他主题或插件覆盖
+- 高亮文本滚动到页面中央，以兼容数据库文本高亮
+- 搜索结果索引计数可以循环
+- 文本框在 0.4 秒内无编辑则自动搜索
+- 只搜索在文档区域内的文本，不包含界面和文档标题
+- **支持长文档完整搜索**：使用思源 API 获取完整文档内容，解决分段加载导致搜索结果不全的问题
+- **支持替换功能**：使用思源原生 API 实现替换当前和替换全部功能
 
-### Technical Improvements
-- Asynchronous API calls don't block UI
-- 400ms input debounce for better performance
-- CSS Highlights API for efficient rendering
-- Retry mechanism: up to 40 attempts (5 seconds) with 120ms intervals
-- Block index ratio for approximate scrolling
+## 更新
 
-### Fixed
-- Long document search results incomplete issue
-- Navigation to matches beyond visible content
-- Match count accuracy in documents with lazy loading
-- Search panel positioning and z-index issues
+##### 2026-04-05
 
-## [0.9.1] - 2025-12-24
+- 修复替换当前功能：现在只替换当前高亮的那一个匹配，而不是整个块中的所有匹配
+- 修复替换全部功能：通过 DOM 和 API 获取文档信息，不再依赖 JavaScript 对象
+- 替换后自动刷新搜索结果，显示正确的匹配总数
+- 增加详细的调试日志便于排查问题
 
-### Fixed
-- Unable to open search box when cursor is in Callout block within floating window
+##### 2026-04-04
 
-## [0.9.0] - 2025-11-17
+- 使用思源 API 获取完整文档内容进行搜索，解决长文档分段加载导致搜索结果不全的问题
+- 搜索时自动触发未加载内容的加载和高亮显示
+- 添加替换功能：替换当前和替换全部
+- 替换框始终展开，与搜索栏风格统一
 
-### Added
-- Multi-layer scroll container centering support
-- Element visibility check for search results
+##### 2024-03-27
 
-### Fixed
-- Floating window search functionality
-- Mobile search functionality
-- Inaccurate positioning due to zero-width spaces in .protyle-attr elements
+- 调整元素样式、优化交互，体验更接近浏览器
+- 每次点击箭头时重新搜索
+- 不再搜索到其他打开过的页签中的内容
+- 点击顶栏按钮或使用快捷键时不重复创建元素
+- 在输入框内，按下 `Enter` 跳转下一项，按下 `Shift+Enter` 跳转上一项
 
-## [0.8.0] - 2025-09-04
+##### 2024-03-31
 
-### Fixed
-- Conflict with native search highlighting [#45](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/45)
-- Highlight search not matching current document when search tab exists [#29](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/29)
+- 优化元素样式，提升使用体验
+- 在文本框内按下 Esc 即可关闭
+- 如果没有搜索结果，搜索结果和索引计数都清零
 
-## [0.7.0] - 2025-09-01
+##### 2024-04-08
 
-### Added
-- Support for searching text containing zero-width spaces [#42](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/42)
+- 更改插件名称
+- 更新插件预览图
+- 优化部分描述
 
-## [0.6.0] - 2025-08-10
+##### 2024-04-17
 
-### Added
-- Re-search when switching tabs [#2](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/2)
-- Support for searching in export preview mode [#39](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/39)
+- 改进暗黑模式下的颜色
+- 支持带文本样式和超链接的搜索
+- 如果搜索框已弹出，再次点击顶栏按钮或快捷键时，会重新将焦点移动到当前聚焦的页签中的搜索框并全选内容
 
-## [0.5.0] - 2025-07-12
+##### 2024-04-18
 
-### Added
-- Drag search result count text to move search component (desktop) [#16](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/16)
-- Refresh highlighting after editing document [#24](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/24)
-- Support for searching selected text [#20](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/20)
-- Support for searching in floating windows [#27](https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/27)
+- 分屏时在当前聚焦页签打开搜索框，支持在不同的页签中单独搜索
+- 代码块内无语法高亮的文本在搜索时可以移动到界面中央了
 
-### Fixed
-- Error when clicking buttons with empty search results
+##### 2024-08-10
 
----
+- 更换了顶栏按钮的图标，不再复用「标记」图标
 
-## Version Numbering
+##### 2025-07-01
 
-This project follows [Semantic Versioning](https://semver.org/):
-- MAJOR version for incompatible API changes
-- MINOR version for new functionality in a backwards compatible manner
-- PATCH version for backwards compatible bug fixes
+- 支持在浏览器、桌面端新窗口、移动端中使用插件
 
-## Links
+##### 2025-07-12
 
-- [GitHub Repository](https://github.com/yshumy/siyuan-plugin-ss)
-- [Issue Tracker](https://github.com/yshumy/siyuan-plugin-ss/issues)
-- [SiYuan Community](https://ld246.com/)
+- 桌面端拖拽搜索结果数量文本可以移动搜索组件位置
+- 解决搜索结果为空时点击按钮报错
+- 编辑文档后刷新高亮
+- 支持选中文本搜索
+- 支持在浮窗中搜索
+
+##### 2025-08-10
+
+- 切换页签时重新搜索
+- 支持在导出预览模式搜索
+
+##### 2025-09-01
+
+- 支持搜索包含零宽空格的文本
+
+##### 2025-09-04
+
+- 解决与原生搜索高亮的冲突
+- 存在搜索页签时，高亮搜索匹配不到当前文档
+
+##### 2025-11-17
+
+- 支持多层滚动容器的居中显示
+- 搜索时检查元素可见性，仅显示可见的元素作为搜索结果
+- 修复浮窗搜索和移动端搜索功能失效的问题
+- 修复因 .protyle-attr 元素中的零宽空格导致搜索结果定位不准确的问题
+
+##### 2025-12-24
+
+- 修复光标在浮窗内的 Callout block 中时无法打开搜索框的问题
