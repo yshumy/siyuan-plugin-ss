@@ -1,0 +1,103 @@
+.highlight-search-result {
+    position: absolute;
+    top: 60px;
+    right: 70px;
+    border: 1px solid var(--b3-border-color);
+    border-radius: 5px;
+    background-color: var(--b3-theme-surface);
+    box-shadow: 1px 2px 6px 1px rgba(0, 0, 0, 0.2);
+}
+.highlight-search-result--mobile {
+    top: 30px;
+    right: unset;
+    align-self: center;
+}
+.highlight-search-result .search-dialog {
+    position: relative;
+    z-index: 8; // 编辑器全屏之后会遮挡 https://github.com/TCOTC/siyuan-plugin-hsr-mdzz2048-fork/issues/21
+    background-color: var(--b3-theme-surface);
+    border: none;
+    border-radius: 5px 5px 0 0;
+    padding: 14px 10px 10px 10px;
+}
+.highlight-search-result--mobile .search-dialog {
+    z-index: 7; // 低于左右侧栏
+}
+
+.highlight-search-result .replace-dialog {
+    position: relative;
+    z-index: 8;
+    background-color: var(--b3-theme-surface);
+    border: none;
+    border-top: 1px solid var(--b3-border-color);
+    border-radius: 0 0 5px 5px;
+    padding: 10px;
+}
+.highlight-search-result--mobile .replace-dialog {
+    z-index: 7;
+}
+
+.highlight-search-result .search-dialog .search-tools>div {
+    border: none;
+    border-radius: 20px;
+    text-align: center;
+    cursor: default;
+    background-color: var(--b3-theme-surface);
+    transition: background-color 0.3s;
+}
+.highlight-search-result .search-dialog .search-tools>div:hover {
+    background-color: var(--b3-theme-surface-lighter);
+    transition: background-color 0.3s;
+}
+.highlight-search-result .search-dialog .search-tools>div:active {
+    background-color: var(--b3-theme-on-surface-light);
+    transition: background-color 0.2s;
+}
+
+.highlight-search-result .replace-dialog .replace-tools {
+    display: flex;
+    gap: 8px;
+    margin-left: 5px;
+}
+
+.highlight-search-result .replace-dialog .replace-btn {
+    height: 28px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    background-color: #123456;
+    color: #ffffff;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.highlight-search-result .replace-dialog .replace-btn:hover {
+    background-color: #B2EBF2;
+    color: #000000;
+    transition: background-color 0.2s;
+}
+
+.highlight-search-result .replace-dialog .replace-btn:active {
+    background-color: #778899;
+    color: #ffffff;
+    transition: background-color 0.1s;
+}
+// 浮窗内的搜索组件，需要尽量靠边
+.block__edit.protyle > .highlight-search-result {
+    top: 25px;
+    right: 0;
+}
+
+::highlight(search-results) {
+    background-color: rgb(235 235 5);
+    color: rgb(0, 0, 0);
+}
+
+::highlight(search-focus) {
+    background-color: rgb(255, 150, 50);
+    color: rgb(0, 0, 0);
+}
